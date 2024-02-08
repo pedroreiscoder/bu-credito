@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @Setter
 public class InstallmentResponse {
 
+    private Long id;
     private BigDecimal value;
     private BigDecimal interestRate;
     private LocalDateTime createdAt;

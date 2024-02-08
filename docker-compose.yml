@@ -16,6 +16,7 @@ services:
       - SPRING_DATASOURCE_USERNAME=compose-postgres
       - SPRING_DATASOURCE_PASSWORD=compose-postgres
       - SPRING_DATASOURCE_HIKARI_SCHEMA=bu_credit_schema
+      - BU_CREDIT_INTEREST_RATE=5
 
   db:
     image: 'postgres:13.1-alpine'
