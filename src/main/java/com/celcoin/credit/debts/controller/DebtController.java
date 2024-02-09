@@ -7,6 +7,14 @@ import com.celcoin.credit.debts.valueobject.DebtResponse;
 import com.celcoin.credit.debts.valueobject.InstallmentResponse;
 import com.celcoin.credit.debts.valueobject.PayInstallmentRequest;
 import com.celcoin.credit.debts.valueobject.RegisterDebtRequest;
+import com.celcoin.credit.error.ErrorResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -18,6 +26,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Tag(name = "Debts")
 @RestController
 @RequestMapping("/api/debts")
 @RequiredArgsConstructor
@@ -26,6 +35,12 @@ public class DebtController {
     private final DebtService debtService;
     private final ModelMapper mapper;
 
+    @Operation(summary = "Get a list of all debts")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Returns the debts",
+                    content = { @Content(mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = DebtResponse.class)))})
+    })
     @GetMapping
     public ResponseEntity<List<DebtResponse>> getDebts(@RequestParam(required = false) String creditorName,
                                                        @RequestParam(required = false) LocalDate dueDate,
@@ -39,6 +54,15 @@ public class DebtController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Get the debt with the specified id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Returns the debt",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = DebtResponse.class))}),
+            @ApiResponse(responseCode = "404", description = "Debt not found",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class))})
+    })
     @GetMapping("/{id}")
     public ResponseEntity<DebtResponse> getDebt(@PathVariable Long id){
 
@@ -48,6 +72,15 @@ public class DebtController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Registers a new debt")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Debt was created successfully",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = DebtResponse.class))}),
+            @ApiResponse(responseCode = "400", description = "Invalid request",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class))})
+    })
     @PostMapping
     public ResponseEntity<DebtResponse> registerDebt(@RequestBody @Valid RegisterDebtRequest request){
 
@@ -58,6 +91,21 @@ public class DebtController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @Operation(summary = "Pays a new installment")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Installment payment was successful",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = InstallmentResponse.class))}),
+            @ApiResponse(responseCode = "400", description = "Invalid Request/Incorrect Value/Debt Overdue",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class))}),
+            @ApiResponse(responseCode = "404", description = "Debt not found",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class))}),
+            @ApiResponse(responseCode = "409", description = "Debt already paid",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class))})
+    })
     @PostMapping("/{debtId}/installments")
     public ResponseEntity<InstallmentResponse> payInstallment(@PathVariable Long debtId,
                                                               @RequestBody @Valid PayInstallmentRequest request){
