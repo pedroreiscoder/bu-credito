@@ -5,6 +5,9 @@ Docker
 After cloning the repository, go to the root directory folder and run the following command:
 `docker compose up`
 
+## Swagger
+You can find the swagger dashboard at: `http://localhost:8080/swagger-ui/index.html`
+
 ## How to Use
 `GET /api/debts` Returns a list of debts, you can filter by creditorName, statusId and dueDate  
 Status Id  
