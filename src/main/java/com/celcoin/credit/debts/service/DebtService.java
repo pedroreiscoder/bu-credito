@@ -10,14 +10,18 @@ import com.celcoin.credit.debts.exception.IncorrectValueException;
 import com.celcoin.credit.debts.repository.DebtRepository;
 import com.celcoin.credit.debts.repository.InstallmentRepository;
 import com.celcoin.credit.debts.valueobject.DebtStatus;
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
+
+import static com.celcoin.credit.debts.specification.DebtSpecification.*;
 
 @Service
 public class DebtService {
@@ -32,6 +36,22 @@ public class DebtService {
         this.interestRate = interestRate;
         this.debtRepository = debtRepository;
         this.installmentRepository = installmentRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Debt> getDebts(String creditorName, LocalDate dueDate, Integer statusId){
+
+        Specification<Debt> filters = Specification.where(hasCreditorName(creditorName))
+                                                    .and(hasDueDate(dueDate))
+                                                    .and(hasStatus(statusId));
+
+        return debtRepository.findAll(filters);
+    }
+
+    @Transactional(readOnly = true)
+    public Debt getDebt(Long id){
+
+        return debtRepository.findById(id).orElseThrow(DebtNotFoundException::new);
     }
 
     @Transactional

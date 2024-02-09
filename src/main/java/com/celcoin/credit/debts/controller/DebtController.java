@@ -14,6 +14,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @RestController
 @RequestMapping("/api/debts")
 @RequiredArgsConstructor
@@ -21,6 +25,28 @@ public class DebtController {
 
     private final DebtService debtService;
     private final ModelMapper mapper;
+
+    @GetMapping
+    public ResponseEntity<List<DebtResponse>> getDebts(@RequestParam(required = false) String creditorName,
+                                                       @RequestParam(required = false) LocalDate dueDate,
+                                                       @RequestParam(required = false) Integer statusId){
+
+        List<Debt> debts = debtService.getDebts(creditorName, dueDate, statusId);
+        List<DebtResponse> response = debts.stream()
+                .map(debt -> mapper.map(debt, DebtResponse.class))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<DebtResponse> getDebt(@PathVariable Long id){
+
+        Debt debt = debtService.getDebt(id);
+        DebtResponse response = mapper.map(debt, DebtResponse.class);
+
+        return ResponseEntity.ok(response);
+    }
 
     @PostMapping
     public ResponseEntity<DebtResponse> registerDebt(@RequestBody @Valid RegisterDebtRequest request){
