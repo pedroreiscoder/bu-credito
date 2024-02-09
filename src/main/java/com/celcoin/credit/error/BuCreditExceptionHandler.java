@@ -4,16 +4,38 @@ import com.celcoin.credit.debts.exception.DebtAlreadyPaidException;
 import com.celcoin.credit.debts.exception.DebtNotFoundException;
 import com.celcoin.credit.debts.exception.DebtOverdueException;
 import com.celcoin.credit.debts.exception.IncorrectValueException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class BuCreditExceptionHandler extends ResponseEntityExceptionHandler {
+
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException e,
+                                                                  HttpHeaders headers,
+                                                                  HttpStatusCode status,
+                                                                  WebRequest request){
+
+        List<String> errors = e.getBindingResult()
+                               .getFieldErrors()
+                               .stream()
+                               .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
+                               .collect(Collectors.toList());
+
+        ErrorResponse response = new ErrorResponse(errors);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
 
     @ExceptionHandler(DebtNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleDebtNotFoundException(DebtNotFoundException e){
